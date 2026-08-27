@@ -17,6 +17,7 @@ interface RoomProps {
 export function Room({ socket, user, roomId, onLeave }: RoomProps) {
   const [room, setRoom] = useState<Room | null>(null)
   const [error, setError] = useState('')
+  const [myVote, setMyVote] = useState<Card | null>(null)
 
   const userId = user.userId
 
@@ -46,6 +47,10 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
     if (!room) return null
     return room.tasks.find((t) => t.id === room.activeTaskId) ?? null
   }, [room])
+
+  useEffect(() => {
+    setMyVote(null)
+  }, [activeTask?.id, activeTask?.revealed])
 
   if (!room) {
     return (
@@ -95,7 +100,7 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
           <PokerTable room={room} activeTask={activeTask} userId={userId} />
           <Hand
             activeTask={activeTask}
-            userId={userId}
+            myVote={myVote}
             onVote={(card) => onVote(card)}
           />
         </section>
@@ -105,6 +110,7 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
 
   function onVote(card: Card | null) {
     if (!activeTask || !connectedPlayer(players, userId)) return
+    setMyVote(card)
     socket.emit('task:vote', {
       roomId,
       taskId: activeTask.id,
@@ -222,14 +228,13 @@ function PokerTable({
 
 function Hand({
   activeTask,
-  userId,
+  myVote,
   onVote,
 }: {
   activeTask: Task | null
-  userId: string
+  myVote: Card | null
   onVote: (card: Card | null) => void
 }) {
-  const myVote = activeTask ? (activeTask.votes[userId] ?? null) : null
   const revealed = !!activeTask?.revealed
   const disabled = !activeTask || revealed
 
