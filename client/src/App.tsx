@@ -6,6 +6,7 @@ import { SettingsModal } from "./components/SettingsModal";
 import { getLocalUser, saveLocalUser } from "./lib/storage";
 import type { LocalUser } from "./lib/types";
 import "./App.css";
+import logo from "./assets/SprintPlanningPokerLogo.png";
 
 const url = import.meta.env.VITE_API_URL ?? "/";
 
@@ -125,8 +126,7 @@ function App() {
       </button>
 
       <div className="home-card">
-        <h1 className="login-title">🎴 Sprint Planning Poker</h1>
-        <h1> </h1>
+        <img src={logo} alt="" style={{ width: "50%", marginBottom: "20px" }} />
 
         {!connected && <p className="field-error">Conectando ao servidor...</p>}
         {enterError && <p className="field-error">{enterError}</p>}

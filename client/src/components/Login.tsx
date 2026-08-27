@@ -1,34 +1,37 @@
-import { useState } from 'react'
-import { DEFAULT_ICON, ICONS } from '../lib/icons'
-import { generateUserId, saveLocalUser } from '../lib/storage'
-import type { LocalUser } from '../lib/types'
+import { useState } from "react";
+import { DEFAULT_ICON, ICONS } from "../lib/icons";
+import { generateUserId, saveLocalUser } from "../lib/storage";
+import type { LocalUser } from "../lib/types";
+import logo from "../assets/SprintPlanningPokerLogo.png";
 
 interface LoginProps {
-  onLogin: (user: LocalUser) => void
+  onLogin: (user: LocalUser) => void;
 }
 
 export function Login({ onLogin }: LoginProps) {
-  const [name, setName] = useState('')
-  const [icon, setIcon] = useState<string>(DEFAULT_ICON)
-  const [error, setError] = useState('')
+  const [name, setName] = useState("");
+  const [icon, setIcon] = useState<string>(DEFAULT_ICON);
+  const [error, setError] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const trimmed = name.trim()
+    e.preventDefault();
+    const trimmed = name.trim();
     if (!trimmed) {
-      setError('Digite seu nome')
-      return
+      setError("Digite seu nome");
+      return;
     }
-    const user = { name: trimmed, icon, userId: generateUserId() }
-    saveLocalUser(user)
-    onLogin(user)
+    const user = { name: trimmed, icon, userId: generateUserId() };
+    saveLocalUser(user);
+    onLogin(user);
   }
 
   return (
     <div className="login-screen">
       <div className="login-card">
-        <h1 className="login-title">🎴 Sprint Planning Poker</h1>
-        <p className="login-subtitle">Escolha seu nome e um ícone para entrar na mesa.</p>
+        <img src={logo} alt="" style={{ width: "50%", marginBottom: "20px" }} />
+        <p className="login-subtitle">
+          Escolha seu nome e um ícone para entrar na mesa.
+        </p>
 
         <form onSubmit={handleSubmit} className="login-form">
           <label className="field">
@@ -37,8 +40,8 @@ export function Login({ onLogin }: LoginProps) {
               type="text"
               value={name}
               onChange={(e) => {
-                setName(e.target.value)
-                setError('')
+                setName(e.target.value);
+                setError("");
               }}
               placeholder="Ex: Ana"
               maxLength={24}
@@ -53,7 +56,7 @@ export function Login({ onLogin }: LoginProps) {
                 <button
                   key={ic}
                   type="button"
-                  className={`icon-option${ic === icon ? ' selected' : ''}`}
+                  className={`icon-option${ic === icon ? " selected" : ""}`}
                   onClick={() => setIcon(ic)}
                   aria-label={`Ícone ${ic}`}
                 >
@@ -71,5 +74,5 @@ export function Login({ onLogin }: LoginProps) {
         </form>
       </div>
     </div>
-  )
+  );
 }
