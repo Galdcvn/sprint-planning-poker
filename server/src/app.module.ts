@@ -2,16 +2,16 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
-import { PokerGateway } from './poker/poker.gateway.js';
-import { PokerService } from './poker/poker.service.js';
+import { PokerModule } from './poker/poker.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PokerModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PokerService, PokerGateway],
+  providers: [AppService],
 })
 export class AppModule {}
