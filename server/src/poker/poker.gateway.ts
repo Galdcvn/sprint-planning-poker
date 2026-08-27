@@ -14,6 +14,7 @@ import type { CreateTaskInput } from './dto/create-task.dto.js';
 import type { VoteInput } from './dto/vote.dto.js';
 import type { RevealTaskInput } from './dto/reveal-task.dto.js';
 import type { ResetTaskInput } from './dto/reset-task.dto.js';
+import type { DeleteTaskInput } from './dto/delete-task.dto.js';
 
 @WebSocketGateway({
   cors: {
@@ -96,6 +97,12 @@ export class PokerGateway {
   @SubscribeMessage('task:reset')
   handleTaskReset(@MessageBody() payload: ResetTaskInput) {
     this.pokerService.resetTask(payload.roomId, payload.taskId);
+    this.emitRoomUpdate(payload.roomId);
+  }
+
+  @SubscribeMessage('task:delete')
+  handleTaskDelete(@MessageBody() payload: DeleteTaskInput) {
+    this.pokerService.deleteTask(payload.roomId, payload.taskId);
     this.emitRoomUpdate(payload.roomId);
   }
 

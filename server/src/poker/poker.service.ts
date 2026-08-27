@@ -243,6 +243,19 @@ export class PokerService {
     task.result = null;
   }
 
+  deleteTask(roomId: string, taskId: string): void {
+    const room = this.requireRoom(roomId);
+    const index = room.tasks.findIndex((t) => t.id === taskId);
+    if (index === -1) {
+      throw new BadRequestException('Tarefa não encontrada.');
+    }
+    const [removed] = room.tasks.splice(index, 1);
+    if (room.activeTaskId === removed.id) {
+      room.activeTaskId =
+        room.tasks.length > 0 ? room.tasks[room.tasks.length - 1].id : null;
+    }
+  }
+
   leaveRoom(roomId: string, userId: string): void {
     this.removePlayer(roomId, userId);
   }

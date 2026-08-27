@@ -93,6 +93,26 @@ input {
   border-radius: 8px;
 }
 
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.btn-danger {
+  background: transparent;
+  color: #e5484d;
+  border-color: transparent;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(229, 72, 77, 0.12);
+}
+
 /* ---------- Fields ---------- */
 .field {
   display: flex;
@@ -417,6 +437,13 @@ input {
   overflow-wrap: anywhere;
 }
 
+.task-card-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .task-card-points {
   flex-shrink: 0;
   font-size: 13px;
@@ -425,6 +452,23 @@ input {
   background: var(--accent-bg);
   border-radius: 8px;
   padding: 2px 8px;
+}
+
+.task-card-pen {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.task-card-pen:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
 }
 
 .task-card-link {
@@ -546,16 +590,16 @@ input {
 }
 
 .table-card {
-  width: 58px;
-  height: 82px;
-  border-radius: 10px;
+  width: 34px;
+  height: 48px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.6);
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  font-size: 16px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .table-card.voted {
@@ -702,6 +746,68 @@ input {
   text-overflow: ellipsis;
 }
 
+/* ---------- Lugar de cada jogador (avatar + carta) ---------- */
+.seat {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.seat-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 6;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e3a8a, #1e40af);
+  color: #fff;
+  border-color: #172554;
+}
+
+.seat-card-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  opacity: 0.95;
+}
+
+.seat-card.revealed {
+  background: #fff;
+  color: var(--text-h);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.seat-avatar .avatar {
+  position: static;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Contagem 3, 2, 1 antes de revelar */
+.table-countdown {
+  font-size: 96px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+  animation: countdown-pop 0.9s ease;
+}
+
+@keyframes countdown-pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* ---------- Loading ---------- */
 .room-loading {
   min-height: 100svh;
@@ -752,9 +858,9 @@ input {
   }
 
   .table-card {
-    width: 46px;
-    height: 66px;
-    font-size: 20px;
+    width: 28px;
+    height: 40px;
+    font-size: 13px;
   }
 
   .table-result-value {
