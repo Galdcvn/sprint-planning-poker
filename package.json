@@ -1,0 +1,24 @@
+{
+  "name": "sprint-planning-poker",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n client,server -c cyan,magenta \"yarn workspace client dev\" \"yarn workspace server dev\"",
+    "build": "yarn workspace client build && yarn workspace server build",
+    "dev:client": "yarn workspace client dev",
+    "dev:server": "yarn workspace server dev",
+    "build:client": "yarn workspace client build",
+    "build:server": "yarn workspace server build",
+    "start:server": "yarn workspace server start:prod"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
