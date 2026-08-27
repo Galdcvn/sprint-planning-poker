@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { Socket } from 'socket.io-client'
 
+const BASE_URL = import.meta.env.VITE_API_URL ?? '/'
+
 export function CreateTask({
   roomId,
   socket,
@@ -15,6 +17,33 @@ export function CreateTask({
   const [title, setTitle] = useState('')
   const [link, setLink] = useState('')
   const [error, setError] = useState('')
+  const [fetching, setFetching] = useState(false)
+
+  async function fetchTitle(linkValue: string) {
+    const trimmed = linkValue.trim()
+    if (!trimmed || title.trim()) return
+    setFetching(true)
+    try {
+      const res = await fetch(`${BASE_URL}/clickup/title`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: trimmed }),
+      })
+      if (res.ok) {
+        const data = (await res.json()) as { title?: string | null }
+        if (data.title) {
+          setTitle(data.title)
+          setError('')
+        }
+      } else {
+        setError('Título: clique no link abaixo para buscar')
+      }
+    } catch {
+      setError('Título: clique no link abaixo para buscar')
+    } finally {
+      setFetching(false)
+    }
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -55,9 +84,14 @@ export function CreateTask({
         <input
           type="url"
           value={link}
-          onChange={(e) => setLink(e.target.value)}
+          onChange={(e) => {
+            setLink(e.target.value)
+            setError('')
+          }}
+          onBlur={(e) => fetchTitle(e.target.value)}
           placeholder="https://app.clickup.com/..."
         />
+        {fetching && <span className="field-hint">Buscando título...</span>}
       </label>
       {error && <p className="field-error">{error}</p>}
       <button type="submit" className="btn btn-primary btn-block" disabled={disabled}>
