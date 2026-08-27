@@ -29,11 +29,6 @@ export class PokerController {
     if (!room) {
       throw new NotFoundException('Sala não encontrada.');
     }
-    return {
-      id: room.id,
-      name: room.name,
-      createdAt: room.createdAt,
-      players: this.pokerService.getPlayersView(room),
-    };
+    return this.pokerService.getRoomView(room);
   }
 }

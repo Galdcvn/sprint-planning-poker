@@ -8,6 +8,11 @@ import { Server, Socket } from 'socket.io';
 import { PokerService } from './poker.service.js';
 import type { CreateRoomInput } from './dto/create-room.dto.js';
 import type { JoinRoomInput } from './dto/join-room.dto.js';
+import type { LeaveRoomInput } from './dto/leave-room.dto.js';
+import type { CreateTaskInput } from './dto/create-task.dto.js';
+import type { VoteInput } from './dto/vote.dto.js';
+import type { RevealTaskInput } from './dto/reveal-task.dto.js';
+import type { ResetTaskInput } from './dto/reset-task.dto.js';
 
 @WebSocketGateway({
   cors: {
@@ -21,8 +26,8 @@ export class PokerGateway {
   constructor(private readonly pokerService: PokerService) {}
 
   afterInit() {
-    this.pokerService.setOnPlayerRemoved((roomId, players) => {
-      this.server.to(roomId).emit('room:players-updated', players);
+    this.pokerService.setOnPlayerRemoved((roomId) => {
+      this.emitRoomUpdate(roomId);
     });
   }
 
@@ -47,14 +52,56 @@ export class PokerGateway {
     const { playerId, roomId } = this.pokerService.joinRoom(payload);
     client.join(roomId);
     this.pokerService.registerSocket(roomId, playerId, client.id);
+    this.emitRoomUpdate(roomId);
+    return { playerId, roomId };
+  }
 
+  @SubscribeMessage('leaveRoom')
+  handleLeaveRoom(@MessageBody() payload: LeaveRoomInput) {
+    this.pokerService.leaveRoom(payload.roomId, payload.userId);
+  }
+
+  @SubscribeMessage('task:create')
+  handleTaskCreate(@MessageBody() payload: CreateTaskInput) {
+    this.pokerService.createTask(
+      payload.roomId,
+      payload.title,
+      payload.link,
+      payload.userId,
+    );
+    this.emitRoomUpdate(payload.roomId);
+  }
+
+  @SubscribeMessage('task:vote')
+  handleTaskVote(@MessageBody() payload: VoteInput) {
+    this.pokerService.vote(
+      payload.roomId,
+      payload.taskId,
+      payload.userId,
+      payload.card,
+    );
+    this.emitRoomUpdate(payload.roomId);
+  }
+
+  @SubscribeMessage('task:reveal')
+  handleTaskReveal(@MessageBody() payload: RevealTaskInput) {
+    this.pokerService.reveal(payload.roomId, payload.taskId);
+    this.emitRoomUpdate(payload.roomId);
+  }
+
+  @SubscribeMessage('task:reset')
+  handleTaskReset(@MessageBody() payload: ResetTaskInput) {
+    this.pokerService.resetTask(payload.roomId, payload.taskId);
+    this.emitRoomUpdate(payload.roomId);
+  }
+
+  private emitRoomUpdate(roomId: string): void {
     const room = this.pokerService.getRoom(roomId);
     if (room) {
-      client.to(roomId).emit(
-        'room:players-updated',
-        this.pokerService.getPlayersView(room),
+      this.server.to(roomId).emit(
+        'room:update',
+        this.pokerService.getRoomView(room),
       );
     }
-    return { playerId, roomId };
   }
 }
