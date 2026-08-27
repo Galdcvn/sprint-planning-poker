@@ -590,8 +590,8 @@ input {
 }
 
 .table-card {
-  width: 34px;
-  height: 48px;
+  width: 44px;
+  height: 68px;
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.6);
   background: #fff;

@@ -5,7 +5,7 @@ import type { JoinRoomInput } from './dto/join-room.dto.js';
 
 export const CARDS = [0, 1, 2, 3, 5, 8, 13, 21, 34] as const;
 export type CardNumber = (typeof CARDS)[number];
-export type Card = CardNumber | '?' | null;
+export type Card = CardNumber | '🍌' | null;
 
 export interface Player {
   id: string;
@@ -208,7 +208,7 @@ export class PokerService {
     if (!room.players.has(userId)) {
       throw new BadRequestException('Jogador não está na sala.');
     }
-    if (card !== null && card !== '?' && !CARDS.includes(card)) {
+    if (card !== null && card !== '🍌' && !CARDS.includes(card)) {
       throw new BadRequestException('Carta inválida.');
     }
     task.votes.set(userId, card);

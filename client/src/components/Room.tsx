@@ -223,7 +223,7 @@ function PlayerSeat({
   const dx = 50 - pos.left;
   const dy = 50 - pos.top;
   const len = Math.hypot(dx, dy) || 1;
-  const dist = 80;
+  const dist = 85;
   const cardStyle: CSSProperties = {
     transform: `translate(calc(-50% + ${(dx / len) * dist}px), calc(-50% + ${(dy / len) * dist}px))`,
   };
@@ -320,7 +320,7 @@ function Hand({
   const revealed = !!activeTask?.revealed;
   const disabled = !activeTask || revealed;
 
-  const handCards: (Card | null)[] = [...CARDS, "?"];
+  const handCards: (Card | null)[] = [...CARDS, "🍌"];
 
   return (
     <div className="hand">
