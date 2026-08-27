@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { CSSProperties } from 'react'
 import type { Socket } from 'socket.io-client'
-import { POKER_VALUES } from '../lib/types'
-import type { LocalUser, PokerRoom, PokerValue, PokerTask } from '../lib/types'
+import { CARDS } from '../lib/types'
+import type { Card, LocalUser, Player, Room, Task } from '../lib/types'
 import { Avatar } from './Avatar'
 import { CreateTask } from './CreateTask'
 import { TaskList } from './TaskList'
@@ -14,28 +15,33 @@ interface RoomProps {
 }
 
 export function Room({ socket, user, roomId, onLeave }: RoomProps) {
-  const [room, setRoom] = useState<PokerRoom | null>(null)
+  const [room, setRoom] = useState<Room | null>(null)
   const [error, setError] = useState('')
 
+  const userId = user.userId
+
   useEffect(() => {
-    const onUpdate = (data: PokerRoom) => {
+    const onUpdate = (data: Room) => {
       setRoom(data)
       setError('')
     }
     socket.on('room:update', onUpdate)
-    socket.emit('room:join', { roomId, user })
+    socket.emit(
+      'joinRoom',
+      {
+        roomId,
+        name: user.name,
+        icon: user.icon,
+        userId,
+      },
+      () => {},
+    )
     return () => {
       socket.off('room:update', onUpdate)
-      socket.emit('room:leave')
+      socket.emit('leaveRoom', { roomId, userId })
     }
-  }, [socket, roomId, user])
+  }, [socket, roomId, user.name, user.icon, userId])
 
-  // Deriva o id do usuário local a partir dos dados atuais da sala.
-  const myId = room
-    ? Object.values(room.users).find(
-        (u) => u.name === user.name && u.icon === user.icon,
-      )?.id ?? null
-    : null
   const activeTask = useMemo(() => {
     if (!room) return null
     return room.tasks.find((t) => t.id === room.activeTaskId) ?? null
@@ -51,7 +57,7 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
     )
   }
 
-  const users = Object.values(room.users)
+  const players = room.players
 
   return (
     <div className="room">
@@ -74,102 +80,141 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
           <CreateTask
             roomId={room.id}
             socket={socket}
-            disabled={!myId}
+            userId={userId}
+            disabled={!connectedPlayer(players, userId)}
           />
           <TaskList
+            socket={socket}
+            roomId={room.id}
             tasks={room.tasks}
             activeTaskId={room.activeTaskId}
-            myId={myId}
-            onVote={(taskId, value) => socket.emit('task:vote', { roomId: room.id, taskId, value })}
-            onReveal={(taskId) => socket.emit('task:reveal', { roomId: room.id, taskId })}
-            onReset={(taskId) => socket.emit('task:reset', { roomId: room.id, taskId })}
           />
         </aside>
 
         <section className="table-area">
-          <PokerTable
-            room={room}
-            activeTask={activeTask}
-            myId={myId}
-          />
+          <PokerTable room={room} activeTask={activeTask} userId={userId} />
           <Hand
             activeTask={activeTask}
-            myId={myId}
-            onVote={(value) =>
-              activeTask &&
-              socket.emit('task:vote', {
-                roomId: room.id,
-                taskId: activeTask.id,
-                value,
-              })
-            }
+            userId={userId}
+            onVote={(card) => onVote(card)}
           />
-          <div className="users-row">
-            {users.map((u) => (
-              <Avatar key={u.id} user={u} isMe={u.id === myId} highlight={!!activeTask && (activeTask.votes[u.id] ?? null) !== null} />
-            ))}
-          </div>
         </section>
       </div>
     </div>
   )
+
+  function onVote(card: Card | null) {
+    if (!activeTask || !connectedPlayer(players, userId)) return
+    socket.emit('task:vote', {
+      roomId,
+      taskId: activeTask.id,
+      userId,
+      card,
+    })
+  }
+}
+
+function connectedPlayer(players: Player[], userId: string): boolean {
+  return players.some((p) => p.id === userId)
+}
+
+// O voto é 'hidden' antes da revelação; após revelar, mostra o valor real.
+function hasVoted(status: Task['votes'][string] | undefined): boolean {
+  return status !== undefined && status !== null
+}
+
+function avatarPosition(
+  player: Player,
+  room: Room,
+  userId: string,
+): CSSProperties {
+  const isMe = player.id === userId
+
+  // O próprio usuário fica no centro inferior da mesa.
+  if (isMe) {
+    return { top: '91%', left: '50%', transform: 'translate(-50%, -50%)' }
+  }
+
+  // Demais usuários distribuídos no arco superior (topo e laterais).
+  const others = room.players.filter((p) => p.id !== userId)
+  const index = others.findIndex((p) => p.id === player.id)
+  const total = others.length
+  let theta = Math.PI / 2 // topo da mesa
+  if (total > 1) {
+    theta = Math.PI - (index / (total - 1)) * Math.PI
+  }
+  const left = 50 + Math.cos(theta) * 42
+  const top = 50 - Math.sin(theta) * 36
+  return { top: `${top}%`, left: `${left}%`, transform: 'translate(-50%, -50%)' }
 }
 
 function PokerTable({
   room,
   activeTask,
-  myId,
+  userId,
 }: {
-  room: PokerRoom
-  activeTask: PokerTask | null
-  myId: string | null
+  room: Room
+  activeTask: Task | null
+  userId: string
 }) {
-  const users = Object.values(room.users)
-
-  if (!activeTask) {
-    return (
-      <div className="table empty">
-        <p className="table-empty-text">Crie uma tarefa e clique em <strong>Votar</strong> para começar.</p>
-      </div>
-    )
-  }
-
-  if (activeTask.revealed) {
-    return (
-      <div className="table revealed">
-        <div className="table-result">
-          <span className="table-result-label">Média dos pontos</span>
-          <span className="table-result-value">{activeTask.result}</span>
-          <span className="table-result-points">pontos</span>
-        </div>
-        <div className="table-title">{activeTask.title}</div>
-      </div>
-    )
-  }
-
-  const votesGiven = users.filter((u) => (activeTask.votes[u.id] ?? null) !== null).length
-  const total = users.length
+  const players = room.players
+  const votesGiven = activeTask
+    ? players.filter((p) => hasVoted(activeTask.votes[p.id])).length
+    : 0
+  const total = players.length
 
   return (
-    <div className="table">
-      <div className="table-title">{activeTask.title}</div>
-      <div className="table-cards">
-        {users.map((u) => {
-          const hasVoted = (activeTask.votes[u.id] ?? null) !== null
-          const isMe = u.id === myId
-          return (
-            <div
-              key={u.id}
-              className={`table-card${hasVoted ? ' voted' : ''}${isMe ? ' me' : ''}`}
-            >
-              <span className="table-card-icon">{u.icon}</span>
-              {hasVoted ? '🂠' : '❔'}
+    <div className="poker-table-wrap">
+      {players.map((p) => (
+        <Avatar
+          key={p.id}
+          player={p}
+          isMe={p.id === userId}
+          highlight={
+            !!activeTask && hasVoted(activeTask.votes[p.id])
+          }
+          style={avatarPosition(p, room, userId)}
+        />
+      ))}
+
+      <div className={`poker-table${activeTask?.revealed ? ' revealed' : ''}`}>
+        {!activeTask && (
+          <div className="table-empty-text">
+            Crie uma tarefa e clique em <strong>Votar</strong> para começar.
+          </div>
+        )}
+
+        {activeTask && activeTask.revealed && (
+          <div className="table-result-wrap">
+            <span className="table-result-label">Média dos pontos</span>
+            <span className="table-result-value">{activeTask.result}</span>
+            <span className="table-result-points">pontos</span>
+            <div className="table-title">{activeTask.title}</div>
+          </div>
+        )}
+
+        {activeTask && !activeTask.revealed && (
+          <>
+            <div className="table-title">{activeTask.title}</div>
+            <div className="table-cards">
+              {players.map((p) => {
+                const voted = hasVoted(activeTask.votes[p.id])
+                const isMe = p.id === userId
+                return (
+                  <div
+                    key={p.id}
+                    className={`table-card${voted ? ' voted' : ''}${isMe ? ' me' : ''}`}
+                  >
+                    {voted ? '🂠' : '❔'}
+                  </div>
+                )
+              })}
             </div>
-          )
-        })}
-      </div>
-      <div className="table-status">
-        Votaram {votesGiven} de {total}
+            <div className="table-status">
+              Votaram {votesGiven} de {total}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
@@ -177,26 +222,29 @@ function PokerTable({
 
 function Hand({
   activeTask,
-  myId,
+  userId,
   onVote,
 }: {
-  activeTask: PokerTask | null
-  myId: string | null
-  onVote: (value: PokerValue) => void
+  activeTask: Task | null
+  userId: string
+  onVote: (card: Card | null) => void
 }) {
-  const voted = activeTask && myId ? (activeTask.votes[myId] ?? null) : null
-  const disabled = !activeTask || activeTask.revealed || voted !== null || !myId
+  const myVote = activeTask ? (activeTask.votes[userId] ?? null) : null
+  const revealed = !!activeTask?.revealed
+  const disabled = !activeTask || revealed
+
+  const handCards: (Card | null)[] = [...CARDS, '?']
 
   return (
     <div className="hand">
-      {POKER_VALUES.map((value) => {
-        const selected = voted === value
+      {handCards.map((value) => {
+        const selected = myVote === value
         return (
           <button
-            key={value}
+            key={String(value)}
             className={`hand-card${selected ? ' selected' : ''}${disabled ? ' disabled' : ''}`}
             disabled={disabled}
-            onClick={() => onVote(value)}
+            onClick={() => (selected ? onVote(null) : onVote(value!))}
           >
             {value}
           </button>

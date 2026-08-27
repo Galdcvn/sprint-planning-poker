@@ -18,6 +18,7 @@ h1,
 h2,
 p {
   margin: 0;
+  margin-top: 10%;
 }
 
 button {
@@ -217,6 +218,83 @@ input {
   text-align: left;
 }
 
+/* ---------- Settings button ---------- */
+.settings-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  font-size: 22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease;
+  z-index: 20;
+}
+
+.settings-btn:hover {
+  transform: rotate(20deg);
+  background: var(--accent-bg);
+}
+
+/* ---------- Modal ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+
+.modal {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 28px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow);
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+  color: var(--text);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.modal-title {
+  font-size: 20px;
+  margin: 0 0 20px;
+  color: var(--text-h);
+}
+
 /* ---------- Room layout ---------- */
 .room {
   min-height: 100svh;
@@ -382,62 +460,97 @@ input {
   min-width: 0;
 }
 
-.table {
-  flex: 1;
+.poker-table-wrap {
+  position: relative;
   width: 100%;
-  max-width: 720px;
-  min-height: 360px;
+  max-width: 780px;
+  aspect-ratio: 4 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mesa de poker (elipse verde com borda) */
+.poker-table {
+  position: relative;
+  width: 82%;
+  height: 82%;
+  margin: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 18px;
   padding: 24px;
-  background:
-    radial-gradient(ellipse at center, var(--accent-bg) 0%, rgba(0, 0, 0, 0) 70%),
-    var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 24px;
+  text-align: center;
+  background: radial-gradient(
+    ellipse at center,
+    #4ade80 0%,
+    #22c55e 55%,
+    #15803d 100%
+  );
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 40px rgba(0, 0, 0, 0.35),
+    0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
-.table.empty {
-  border-style: dashed;
+.poker-table::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 14px solid #7c2d12;
+  box-shadow:
+    inset 0 0 0 6px #b45309,
+    inset 0 0 20px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.poker-table > * {
+  position: relative;
+  z-index: 1;
+}
+
+.poker-table .table-title {
+  color: #065f46;
+  text-shadow: none;
+  font-weight: 700;
 }
 
 .table-empty-text {
-  color: var(--text);
-  font-size: 15px;
-  text-align: center;
+  color: #052e1b;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .table-title {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-h);
-  text-align: center;
   overflow-wrap: anywhere;
-  max-width: 560px;
+  max-width: 420px;
 }
 
 .table-cards {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
 }
 
 .table-card {
-  width: 72px;
-  height: 100px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  width: 58px;
+  height: 82px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: #fff;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
-  box-shadow: var(--shadow);
+  font-size: 26px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
 }
 
 .table-card.voted {
@@ -447,30 +560,27 @@ input {
 
 .table-card.me {
   box-shadow:
-    0 0 0 3px var(--accent-border),
-    var(--shadow);
-}
-
-.table-card-icon {
-  font-size: 20px;
-  margin-bottom: 4px;
+    0 0 0 3px #fde047,
+    0 4px 8px rgba(0, 0, 0, 0.25);
 }
 
 .table-status {
   font-size: 13px;
-  color: var(--text);
+  font-weight: 600;
+  color: #052e1b;
 }
 
-.table.revealed {
-  gap: 12px;
-  text-align: center;
-}
-
-.table-result {
+/* Resultado no centro da mesa */
+.table-result-wrap {
   display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.poker-table.revealed .table-result-label {
+  color: #052e1b;
+  font-weight: 700;
 }
 
 .table-result-label {
@@ -479,15 +589,17 @@ input {
 }
 
 .table-result-value {
-  font-size: 72px;
+  font-size: 76px;
   font-weight: 800;
-  color: var(--accent);
+  color: #fff;
   line-height: 1;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
 }
 
 .table-result-points {
   font-size: 15px;
-  color: var(--text);
+  color: #052e1b;
+  font-weight: 600;
 }
 
 /* ---------- Hand ---------- */
@@ -534,32 +646,28 @@ input {
   cursor: not-allowed;
 }
 
-/* ---------- Users row ---------- */
-.users-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 14px;
-}
-
+/* ---------- Avatares ao redor da mesa ---------- */
 .avatar {
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 8px;
+  z-index: 5;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .avatar-icon {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 26px;
-  background: var(--code-bg);
-  border: 1px solid var(--border);
+  background: var(--bg);
+  border: 2px solid var(--border);
   border-radius: 50%;
+  box-shadow: var(--shadow);
 }
 
 .avatar.voted .avatar-icon {
@@ -568,13 +676,21 @@ input {
 }
 
 .avatar.me .avatar-icon {
-  box-shadow: 0 0 0 2px var(--accent-border);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px var(--accent-border),
+    var(--shadow);
 }
 
 .avatar-name {
   font-size: 12px;
-  color: var(--text);
-  max-width: 80px;
+  font-weight: 600;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1px 6px;
+  max-width: 90px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -620,19 +736,29 @@ input {
     order: 1;
   }
 
-  .table {
-    min-height: 260px;
-    padding: 16px;
+  .poker-table-wrap {
+    aspect-ratio: 1 / 1;
+  }
+
+  .poker-table {
+    width: 88%;
+    height: 88%;
   }
 
   .table-card {
-    width: 58px;
-    height: 84px;
-    font-size: 22px;
+    width: 46px;
+    height: 66px;
+    font-size: 20px;
   }
 
   .table-result-value {
-    font-size: 56px;
+    font-size: 54px;
+  }
+
+  .avatar-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 22px;
   }
 
   .hand-card {

@@ -1,36 +1,42 @@
 import { useState } from 'react'
-import { DEFAULT_ICON, ICONS } from '../lib/icons'
-import { generateUserId, saveLocalUser } from '../lib/storage'
+import { ICONS } from '../lib/icons'
 import type { LocalUser } from '../lib/types'
 
-interface LoginProps {
-  onLogin: (user: LocalUser) => void
+interface SettingsModalProps {
+  user: LocalUser
+  onSave: (user: LocalUser) => void
+  onClose: () => void
 }
 
-export function Login({ onLogin }: LoginProps) {
-  const [name, setName] = useState('')
-  const [icon, setIcon] = useState<string>(DEFAULT_ICON)
+export function SettingsModal({ user, onSave, onClose }: SettingsModalProps) {
+  const [name, setName] = useState(user.name)
+  const [icon, setIcon] = useState(user.icon)
   const [error, setError] = useState('')
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSave(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = name.trim()
     if (!trimmed) {
       setError('Digite seu nome')
       return
     }
-    const user = { name: trimmed, icon, userId: generateUserId() }
-    saveLocalUser(user)
-    onLogin(user)
+    onSave({ name: trimmed, icon, userId: user.userId })
+    onClose()
   }
 
   return (
-    <div className="login-screen">
-      <div className="login-card">
-        <h1 className="login-title">🎴 Sprint Planning Poker</h1>
-        <p className="login-subtitle">Escolha seu nome e um ícone para entrar na mesa.</p>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <button
+          className="modal-close"
+          onClick={onClose}
+          aria-label="Fechar"
+        >
+          ✕
+        </button>
+        <h2 className="modal-title">Configurações</h2>
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSave}>
           <label className="field">
             <span>Seu nome</span>
             <input
@@ -47,7 +53,7 @@ export function Login({ onLogin }: LoginProps) {
           </label>
 
           <label className="field">
-            <span>Escolha seu ícone</span>
+            <span>Ícone</span>
             <div className="icon-grid">
               {ICONS.map((ic) => (
                 <button
@@ -66,7 +72,7 @@ export function Login({ onLogin }: LoginProps) {
           {error && <p className="field-error">{error}</p>}
 
           <button type="submit" className="btn btn-primary btn-block">
-            Entrar na mesa
+            Salvar
           </button>
         </form>
       </div>

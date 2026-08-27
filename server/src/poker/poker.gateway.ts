@@ -1,4 +1,5 @@
 import {
+  ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
@@ -48,7 +49,10 @@ export class PokerGateway {
   }
 
   @SubscribeMessage('joinRoom')
-  handleJoinRoom(client: Socket, @MessageBody() payload: JoinRoomInput) {
+  handleJoinRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: JoinRoomInput,
+  ) {
     const { playerId, roomId } = this.pokerService.joinRoom(payload);
     client.join(roomId);
     this.pokerService.registerSocket(roomId, playerId, client.id);

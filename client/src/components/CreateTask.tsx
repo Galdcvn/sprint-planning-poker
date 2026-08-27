@@ -4,10 +4,12 @@ import type { Socket } from 'socket.io-client'
 export function CreateTask({
   roomId,
   socket,
+  userId,
   disabled,
 }: {
   roomId: string
   socket: Socket
+  userId: string
   disabled: boolean
 }) {
   const [title, setTitle] = useState('')
@@ -25,6 +27,7 @@ export function CreateTask({
       roomId,
       title: trimmed,
       link: link.trim() || undefined,
+      userId,
     })
     setTitle('')
     setLink('')

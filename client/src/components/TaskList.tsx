@@ -1,21 +1,18 @@
-import type { PokerTask, PokerValue } from '../lib/types'
+import type { Socket } from 'socket.io-client'
+import type { Task } from '../lib/types'
 
 interface TaskListProps {
-  tasks: PokerTask[]
+  socket: Socket
+  roomId: string
+  tasks: Task[]
   activeTaskId: string | null
-  myId: string | null
-  onVote: (taskId: string, value: PokerValue) => void
-  onReveal: (taskId: string) => void
-  onReset: (taskId: string) => void
 }
 
 export function TaskList({
+  socket,
+  roomId,
   tasks,
   activeTaskId,
-  myId,
-  onVote,
-  onReveal,
-  onReset,
 }: TaskListProps) {
   if (tasks.length === 0) {
     return (
@@ -30,7 +27,6 @@ export function TaskList({
       <h2 className="section-title">Tarefas</h2>
       {[...tasks].reverse().map((task) => {
         const isActive = task.id === activeTaskId
-        const hasVoted = myId ? (task.votes[myId] ?? null) !== null : false
         return (
           <div key={task.id} className={`task-card${isActive ? ' active' : ''}`}>
             <div className="task-card-head">
@@ -50,18 +46,12 @@ export function TaskList({
               </a>
             )}
             <div className="task-card-actions">
-              {!isActive && (
-                <button
-                  className="btn btn-small btn-outline"
-                  onClick={() => onVote(task.id, 0)}
-                >
-                  Votar
-                </button>
-              )}
               {isActive && !task.revealed && (
                 <button
                   className="btn btn-small btn-primary"
-                  onClick={() => onReveal(task.id)}
+                  onClick={() =>
+                    socket.emit('task:reveal', { roomId, taskId: task.id })
+                  }
                 >
                   Revelar votos
                 </button>
@@ -69,14 +59,12 @@ export function TaskList({
               {isActive && task.revealed && (
                 <button
                   className="btn btn-small btn-outline"
-                  onClick={() => onReset(task.id)}
+                  onClick={() =>
+                    socket.emit('task:reset', { roomId, taskId: task.id })
+                  }
                 >
                   Votar novamente
                 </button>
-              )}
-              {isActive && task.revealed && <span className="task-card-done">✓ {task.result} pts</span>}
-              {!hasVoted && isActive && !task.revealed && (
-                <span className="task-card-pending">aguardando voto</span>
               )}
             </div>
           </div>

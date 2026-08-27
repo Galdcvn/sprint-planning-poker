@@ -1,19 +1,25 @@
-import type { PokerUser } from '../lib/types'
+import type { CSSProperties } from 'react'
+import type { Player } from '../lib/types'
 
 export function Avatar({
-  user,
+  player,
   isMe,
   highlight,
+  style,
 }: {
-  user: PokerUser
+  player: Player
   isMe: boolean
   highlight: boolean
+  style?: CSSProperties
 }) {
   return (
-    <div className={`avatar${isMe ? ' me' : ''}${highlight ? ' voted' : ''}`}>
-      <div className="avatar-icon">{user.icon}</div>
+    <div
+      className={`avatar${isMe ? ' me' : ''}${highlight ? ' voted' : ''}`}
+      style={style}
+    >
+      <div className="avatar-icon">{player.icon}</div>
       <span className="avatar-name">
-        {user.name}
+        {player.name}
         {isMe ? ' (você)' : ''}
       </span>
     </div>
