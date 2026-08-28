@@ -218,6 +218,15 @@ export class PokerService {
     task.votes.set(userId, card);
   }
 
+  activateTask(roomId: string, taskId: string): void {
+    const room = this.requireRoom(roomId);
+    const task = room.tasks.find((t) => t.id === taskId);
+    if (!task) {
+      throw new BadRequestException('Tarefa não encontrada.');
+    }
+    room.activeTaskId = task.id;
+  }
+
   reveal(roomId: string, taskId: string): void {
     const room = this.requireRoom(roomId);
     const task = room.tasks.find((t) => t.id === taskId);
@@ -229,7 +238,7 @@ export class PokerService {
     const values = [...task.votes.values()].filter(
       (value): value is CardNumber => typeof value === 'number',
     );
-    task.result = average(values);
+    task.result = values.length > 0 ? average(values) : null;
     task.revealed = true;
   }
 

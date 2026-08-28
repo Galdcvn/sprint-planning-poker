@@ -7,6 +7,7 @@ interface TaskListProps {
   roomId: string;
   tasks: Task[];
   activeTaskId: string | null;
+  revealingId?: string | null;
 }
 
 export function TaskList({
@@ -14,7 +15,10 @@ export function TaskList({
   roomId,
   tasks,
   activeTaskId,
+  revealingId,
 }: TaskListProps) {
+  const activate = (taskId: string) =>
+    socket.emit("task:activate", { roomId, taskId });
   if (tasks.length === 0) {
     return (
       <div className="task-list empty">
@@ -32,11 +36,25 @@ export function TaskList({
           <div
             key={task.id}
             className={`task-card${isActive ? " active" : ""}`}
+            onClick={() => !isActive && activate(task.id)}
+            title={isActive ? undefined : "Clicar para votar nesta tarefa"}
+            role={isActive ? undefined : "button"}
+            tabIndex={isActive ? undefined : 0}
+            onKeyDown={
+              isActive
+                ? undefined
+                : (e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      activate(task.id);
+                    }
+                  }
+            }
           >
             <div className="task-card-head">
               <span className="task-card-title">{task.title}</span>
               <span className="task-card-icons">
-                {task.result !== null && (
+                {task.result !== null && task.id !== revealingId && (
                   <span className="task-card-points">{task.result} pts</span>
                 )}
                 {task.link && (
@@ -55,16 +73,6 @@ export function TaskList({
             </div>
             <div></div>
             <div className="task-card-actions">
-              {isActive && !task.revealed && (
-                <button
-                  className="btn btn-small btn-primary"
-                  onClick={() =>
-                    socket.emit("task:reveal", { roomId, taskId: task.id })
-                  }
-                >
-                  Revelar votos
-                </button>
-              )}
               {isActive && task.revealed && (
                 <button
                   className="btn btn-small btn-outline"

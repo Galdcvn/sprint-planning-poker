@@ -428,6 +428,15 @@ input {
   background: var(--accent-bg);
 }
 
+.task-card:not(.active) {
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.task-card:not(.active):hover {
+  border-color: var(--accent-border);
+}
+
 .task-card-head {
   display: flex;
   align-items: flex-start;

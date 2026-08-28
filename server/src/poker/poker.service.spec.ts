@@ -92,6 +92,24 @@ describe('PokerService', () => {
       expect(room.tasks[0].createdBy).toBe(userId);
     });
 
+    it('ativa uma tarefa existente', () => {
+      const { roomId, userId } = setup();
+      service.createTask(roomId, 'Tarefa 1', undefined, userId);
+      service.createTask(roomId, 'Tarefa 2', undefined, userId);
+      const room = service.getRoom(roomId)!;
+      const firstTaskId = room.tasks[0].id;
+      service.activateTask(roomId, firstTaskId);
+      expect(service.getRoom(roomId)!.activeTaskId).toBe(firstTaskId);
+    });
+
+    it('lança erro ao ativar tarefa inexistente', () => {
+      const { roomId, userId } = setup();
+      service.createTask(roomId, 'Tarefa 1', undefined, userId);
+      expect(() =>
+        service.activateTask(roomId, 'id-inexistente'),
+      ).toThrow(BadRequestException);
+    });
+
     it('grava voto e permite mudar até o reveal', () => {
       const { roomId, userId } = setup();
       service.createTask(roomId, 'Tarefa 1', undefined, userId);
@@ -138,13 +156,13 @@ describe('PokerService', () => {
       expect(task.result).toBe(7);
     });
 
-    it('média de tarefa sem votos numéricos é 0', () => {
+    it('média de tarefa sem votos numéricos é null', () => {
       const { roomId, userId } = setup();
       service.createTask(roomId, 'Tarefa 1', undefined, userId);
       const taskId = service.getRoom(roomId)!.activeTaskId!;
       service.vote(roomId, taskId, userId, '🍌');
       service.reveal(roomId, taskId);
-      expect(service.getRoom(roomId)!.tasks[0].result).toBe(0);
+      expect(service.getRoom(roomId)!.tasks[0].result).toBeNull();
     });
 
     it('reset limpa votos e estado de revelação', () => {

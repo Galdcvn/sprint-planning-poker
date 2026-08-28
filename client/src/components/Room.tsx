@@ -129,6 +129,11 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
             roomId={room.id}
             tasks={room.tasks}
             activeTaskId={room.activeTaskId}
+            revealingId={
+              revealCountdown !== null && revealCountdown > 0
+                ? room.activeTaskId
+                : null
+            }
           />
         </aside>
 
@@ -143,6 +148,13 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
                 roomId,
                 userId,
                 targetUserId: player.id,
+              })
+            }
+            onReveal={() =>
+              activeTask &&
+              socket.emit("task:reveal", {
+                roomId,
+                taskId: activeTask.id,
               })
             }
           />
@@ -293,12 +305,14 @@ function PokerTable({
   userId,
   revealCountdown,
   onRemovePlayer,
+  onReveal,
 }: {
   room: Room;
   activeTask: Task | null;
   userId: string;
   revealCountdown: number | null;
   onRemovePlayer: (player: Player) => void;
+  onReveal: () => void;
 }) {
   const players = room.players;
   const votesGiven = activeTask
@@ -339,7 +353,7 @@ function PokerTable({
           <div className="table-countdown">{countdown}</div>
         )}
 
-        {activeTask && showVotes && (
+        {activeTask && showVotes && activeTask.result !== null && (
           <div className="table-result-wrap">
             <span className="table-result-label">Média dos pontos</span>
             <span className="table-result-value">{activeTask.result}</span>
@@ -350,6 +364,9 @@ function PokerTable({
         {activeTask && !revealed && (
           <>
             <div className="table-title">{activeTask.title}</div>
+            <button className="btn btn-primary" onClick={onReveal}>
+              Revelar votos
+            </button>
             <div className="table-status">
               Votaram {votesGiven} de {total}
             </div>

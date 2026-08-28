@@ -15,6 +15,7 @@ import type { VoteInput } from './dto/vote.dto.js';
 import type { RevealTaskInput } from './dto/reveal-task.dto.js';
 import type { ResetTaskInput } from './dto/reset-task.dto.js';
 import type { DeleteTaskInput } from './dto/delete-task.dto.js';
+import type { SelectTaskInput } from './dto/select-task.dto.js';
 import type { RemovePlayerInput } from './dto/remove-player.dto.js';
 
 @WebSocketGateway({
@@ -100,6 +101,12 @@ export class PokerGateway {
       payload.userId,
       payload.card,
     );
+    this.emitRoomUpdate(payload.roomId);
+  }
+
+  @SubscribeMessage('task:activate')
+  handleTaskActivate(@MessageBody() payload: SelectTaskInput) {
+    this.pokerService.activateTask(payload.roomId, payload.taskId);
     this.emitRoomUpdate(payload.roomId);
   }
 
