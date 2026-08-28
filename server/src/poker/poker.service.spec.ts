@@ -142,7 +142,7 @@ describe('PokerService', () => {
       const { roomId, userId } = setup();
       service.createTask(roomId, 'Tarefa 1', undefined, userId);
       const taskId = service.getRoom(roomId)!.activeTaskId!;
-      service.vote(roomId, taskId, userId, '?');
+      service.vote(roomId, taskId, userId, '🍌');
       service.reveal(roomId, taskId);
       expect(service.getRoom(roomId)!.tasks[0].result).toBe(0);
     });
@@ -178,6 +178,50 @@ describe('PokerService', () => {
       const after = service.getRoomView(room).tasks[0];
       expect(after.revealed).toBe(true);
       expect(after.votes[userId]).toBe(5);
+    });
+  });
+
+  describe('remoção de jogadores pelo criador', () => {
+    it('remove outro jogador e devolve os sockets dele', () => {
+      const { roomId, userId } = service.createRoom({ name: 'Sala A' });
+      const biaId = 'bia-user';
+      service.joinRoom({ roomId, name: 'Bia', icon: '🐼', userId: biaId });
+      service.registerSocket(roomId, biaId, 'socket-b');
+      service.registerSocket(roomId, biaId, 'socket-b2');
+
+      const socketIds = service.removePlayerByCreator(roomId, userId, biaId);
+      expect(socketIds.sort()).toEqual(['socket-b', 'socket-b2']);
+      expect(service.getRoom(roomId)!.players.has(biaId)).toBe(false);
+    });
+
+    it('lança erro se quem remove não é o criador', () => {
+      const { roomId } = service.createRoom({ name: 'Sala A' });
+      const biaId = 'bia-user';
+      service.joinRoom({ roomId, name: 'Bia', userId: biaId });
+      expect(() =>
+        service.removePlayerByCreator(roomId, biaId, 'outro'),
+      ).toThrow(BadRequestException);
+    });
+
+    it('lança erro se o criador tenta remover a si mesmo', () => {
+      const { roomId, userId } = service.createRoom({ name: 'Sala A' });
+      expect(() =>
+        service.removePlayerByCreator(roomId, userId, userId),
+      ).toThrow(BadRequestException);
+    });
+
+    it('lança erro se o alvo não está na sala', () => {
+      const { roomId, userId } = service.createRoom({ name: 'Sala A' });
+      expect(() =>
+        service.removePlayerByCreator(roomId, userId, 'ghost'),
+      ).toThrow(BadRequestException);
+    });
+  });
+
+  describe('identificador curto da sala', () => {
+    it('gera id de 8 caracteres hexagecimais', () => {
+      const { roomId } = service.createRoom({ name: 'Sala A' });
+      expect(roomId).toMatch(/^[0-9a-f]{8}$/);
     });
   });
 

@@ -320,6 +320,11 @@ input {
   color: var(--text-h);
 }
 
+.kicked-text {
+  margin: 0 0 16px;
+  color: var(--text-h);
+}
+
 /* ---------- Room layout ---------- */
 .room {
   min-height: 100svh;
@@ -625,6 +630,18 @@ input {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  animation: result-reveal 0.7s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+}
+
+@keyframes result-reveal {
+  0% {
+    transform: rotateX(-90deg) scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: rotateX(0deg) scale(1);
+    opacity: 1;
+  }
 }
 
 .poker-table.revealed .table-result-label {
@@ -761,10 +778,53 @@ input {
   top: 50%;
   left: 50%;
   z-index: 6;
+  width: 44px;
+  height: 68px;
+  border-radius: 6px;
+  perspective: 600px;
+}
+
+.seat-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+.seat-card.revealed .seat-card-inner {
+  transform: rotateY(180deg);
+}
+
+.seat-card-face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
   font-weight: 800;
+  font-size: 16px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.seat-card-back {
   background: linear-gradient(135deg, #1e3a8a, #1e40af);
   color: #fff;
   border-color: #172554;
+}
+
+.seat-card.voted .seat-card-back {
+  background: linear-gradient(135deg, #7c3aed, #c084fc);
+}
+
+.seat-card-front {
+  background: linear-gradient(135deg, #581c87, #6b21a8);
+  color: #c084fc;
+  transform: rotateY(180deg);
 }
 
 .seat-card-logo {
@@ -774,15 +834,36 @@ input {
   opacity: 0.95;
 }
 
-.seat-card.revealed {
-  background: #fff;
-  color: var(--text-h);
-  border-color: rgba(255, 255, 255, 0.6);
-}
-
 .seat-avatar .avatar {
   position: static;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.seat-remove {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: #e5484d;
+  font-size: 11px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.seat-remove:hover {
+  background: rgba(229, 72, 77, 0.12);
+  border-color: rgba(229, 72, 77, 0.4);
 }
 
 /* Contagem 3, 2, 1 antes de revelar */
@@ -860,6 +941,15 @@ input {
   .table-card {
     width: 28px;
     height: 40px;
+    font-size: 13px;
+  }
+
+  .seat-card {
+    width: 28px;
+    height: 40px;
+  }
+
+  .seat-card-face {
     font-size: 13px;
   }
 

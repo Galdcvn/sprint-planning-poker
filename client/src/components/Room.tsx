@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 import type { Socket } from "socket.io-client";
 import { CARDS } from "../lib/types";
 import type { Card, LocalUser, Player, Room, Task } from "../lib/types";
@@ -20,6 +20,7 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
   const [error, setError] = useState("");
   const [myVote, setMyVote] = useState<Card | null>(null);
   const [revealCountdown, setRevealCountdown] = useState<number | null>(null);
+  const [kicked, setKicked] = useState(false);
   const revealRef = useRef<{ id: string; revealed: boolean } | null>(null);
 
   const userId = user.userId;
@@ -29,7 +30,9 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
       setRoom(data);
       setError("");
     };
+    const onKicked = () => setKicked(true);
     socket.on("room:update", onUpdate);
+    socket.on("player:kicked", onKicked);
     socket.emit(
       "joinRoom",
       {
@@ -42,6 +45,7 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
     );
     return () => {
       socket.off("room:update", onUpdate);
+      socket.off("player:kicked", onKicked);
       socket.emit("leaveRoom", { roomId, userId });
     };
   }, [socket, roomId, user.name, user.icon, userId]);
@@ -134,6 +138,13 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
             activeTask={activeTask}
             userId={userId}
             revealCountdown={revealCountdown}
+            onRemovePlayer={(player) =>
+              socket.emit("player:remove", {
+                roomId,
+                userId,
+                targetUserId: player.id,
+              })
+            }
           />
           <Hand
             activeTask={activeTask}
@@ -142,6 +153,20 @@ export function Room({ socket, user, roomId, onLeave }: RoomProps) {
           />
         </section>
       </div>
+
+      {kicked && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2 className="modal-title">Saiu da sala</h2>
+            <p className="kicked-text">
+              Você foi removido da sala pelo criador.
+            </p>
+            <button className="btn btn-primary btn-block" onClick={onLeave}>
+              Voltar para o início
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -198,6 +223,8 @@ function PlayerSeat({
   room,
   activeTask,
   showVotes,
+  canRemove,
+  onRemove,
 }: {
   player: Player;
   isMe: boolean;
@@ -205,19 +232,15 @@ function PlayerSeat({
   room: Room;
   activeTask: Task | null;
   showVotes: boolean;
+  canRemove: boolean;
+  onRemove: () => void;
 }) {
   const pos = avatarPosition(player, room, userId);
 
   const voted = !!activeTask && hasVoted(activeTask.votes[player.id]);
   const vote = activeTask ? activeTask.votes[player.id] : undefined;
-  // Carta virada para baixo: logo do app dentro da carta.
-  let cardContent: ReactNode = (
-    <img className="seat-card-logo" src={pokerLogo} alt="" />
-  );
-  if (showVotes && vote !== undefined && vote !== null) {
-    cardContent = String(vote);
-  }
-  const cardClass = `table-card seat-card${voted ? " voted" : ""}${showVotes ? " revealed" : ""}`;
+  // Carta revelada: só vira mostrando o valor quando votou.
+  const revealed = showVotes && vote !== undefined && vote !== null;
 
   // Direção do lugar para o centro da mesa (onde a carta fica "na frente").
   const dx = 50 - pos.left;
@@ -228,14 +251,38 @@ function PlayerSeat({
     transform: `translate(calc(-50% + ${(dx / len) * dist}px), calc(-50% + ${(dy / len) * dist}px))`,
   };
 
+  // Revela as cartas em sequência (efeito cascata).
+  const index = room.players.findIndex((p) => p.id === player.id);
+  const flipStyle: CSSProperties = {
+    transitionDelay: revealed ? `${index * 0.08}s` : "0s",
+  };
+
   return (
     <div className="seat" style={{ left: `${pos.left}%`, top: `${pos.top}%` }}>
-      <div className={cardClass} style={cardStyle}>
-        {cardContent}
+      <div
+        className={`seat-card${voted ? " voted" : ""}${revealed ? " revealed" : ""}`}
+        style={cardStyle}
+      >
+        <div className="seat-card-inner" style={flipStyle}>
+          <div className="seat-card-face seat-card-back">
+            <img className="seat-card-logo" src={pokerLogo} alt="" />
+          </div>
+          <div className="seat-card-face seat-card-front">{vote}</div>
+        </div>
       </div>
       <div className="seat-avatar">
         <Avatar player={player} isMe={isMe} highlight={voted} />
       </div>
+      {canRemove && (
+        <button
+          className="seat-remove"
+          title={`Remover ${player.name}`}
+          aria-label={`Remover ${player.name}`}
+          onClick={onRemove}
+        >
+          ✕
+        </button>
+      )}
     </div>
   );
 }
@@ -245,11 +292,13 @@ function PokerTable({
   activeTask,
   userId,
   revealCountdown,
+  onRemovePlayer,
 }: {
   room: Room;
   activeTask: Task | null;
   userId: string;
   revealCountdown: number | null;
+  onRemovePlayer: (player: Player) => void;
 }) {
   const players = room.players;
   const votesGiven = activeTask
@@ -258,6 +307,7 @@ function PokerTable({
   const total = players.length;
   const revealed = !!activeTask?.revealed;
   const countdown = revealCountdown;
+  const canRemove = room.createdBy === userId;
 
   // Mostra os valores reais dos votos só depois que a contagem termina.
   const showVotes = revealed && (countdown === null || countdown === 0);
@@ -273,6 +323,8 @@ function PokerTable({
           room={room}
           activeTask={activeTask}
           showVotes={showVotes}
+          canRemove={canRemove && p.id !== userId}
+          onRemove={() => onRemovePlayer(p)}
         />
       ))}
 

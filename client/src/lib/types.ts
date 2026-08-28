@@ -29,6 +29,7 @@ export interface Room {
   id: string
   name: string
   createdAt: string
+  createdBy: string
   players: Player[]
   tasks: Task[]
   activeTaskId: string | null

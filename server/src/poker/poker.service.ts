@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import type { CreateRoomInput, CreateRoomResult } from './dto/create-room.dto.js';
 import type { JoinRoomInput } from './dto/join-room.dto.js';
 
@@ -29,6 +29,7 @@ export interface PokerRoom {
   id: string;
   name: string;
   createdAt: Date;
+  createdBy: string;
   players: Map<string, Player>;
   tasks: Task[];
   activeTaskId: string | null;
@@ -57,6 +58,7 @@ export interface RoomView {
   id: string;
   name: string;
   createdAt: Date;
+  createdBy: string;
   players: PlayerView[];
   tasks: TaskView[];
   activeTaskId: string | null;
@@ -115,6 +117,7 @@ export class PokerService {
       id: room.id,
       name: room.name,
       createdAt: room.createdAt,
+      createdBy: room.createdBy,
       players: this.getPlayersView(room),
       tasks: room.tasks.map((task) => this.toTaskView(task)),
       activeTaskId: room.activeTaskId,
@@ -132,13 +135,14 @@ export class PokerService {
 
   createRoom(input: CreateRoomInput): CreateRoomResult {
     const name = this.normalizeName(input.name);
-    const roomId = randomUUID();
+    const roomId = this.generateRoomId();
     const userId = this.resolveUserId(input.userId);
 
     const room: PokerRoom = {
       id: roomId,
       name,
       createdAt: new Date(),
+      createdBy: userId,
       players: new Map(),
       tasks: [],
       activeTaskId: null,
@@ -260,6 +264,34 @@ export class PokerService {
     this.removePlayer(roomId, userId);
   }
 
+  removePlayerByCreator(
+    roomId: string,
+    creatorUserId: string,
+    targetUserId: string,
+  ): string[] {
+    const room = this.requireRoom(roomId);
+    if (room.createdBy !== creatorUserId) {
+      throw new BadRequestException(
+        'Apenas o criador da sala pode remover jogadores.',
+      );
+    }
+    if (creatorUserId === targetUserId) {
+      throw new BadRequestException(
+        'O criador não pode remover a si mesmo.',
+      );
+    }
+    if (!room.players.has(targetUserId)) {
+      throw new BadRequestException('Jogador não está na sala.');
+    }
+
+    const socketIds = this.socketIdsForUser(roomId, targetUserId);
+    for (const socketId of socketIds) {
+      this.socketBindings.delete(socketId);
+    }
+    this.removePlayer(roomId, targetUserId);
+    return socketIds;
+  }
+
   registerSocket(roomId: string, userId: string, socketId: string): void {
     this.socketBindings.set(socketId, { roomId, userId });
 
@@ -366,6 +398,23 @@ export class PokerService {
 
   private playerKey(roomId: string, userId: string): string {
     return `${roomId}:${userId}`;
+  }
+
+  private socketIdsForUser(roomId: string, userId: string): string[] {
+    return [...this.socketBindings.entries()]
+      .filter(
+        ([, binding]) =>
+          binding.roomId === roomId && binding.userId === userId,
+      )
+      .map(([socketId]) => socketId);
+  }
+
+  private generateRoomId(): string {
+    let id: string;
+    do {
+      id = randomBytes(4).toString('hex');
+    } while (this.rooms.has(id));
+    return id;
   }
 
   private resolveUserId(userId?: string): string {

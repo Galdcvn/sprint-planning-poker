@@ -15,6 +15,7 @@ import type { VoteInput } from './dto/vote.dto.js';
 import type { RevealTaskInput } from './dto/reveal-task.dto.js';
 import type { ResetTaskInput } from './dto/reset-task.dto.js';
 import type { DeleteTaskInput } from './dto/delete-task.dto.js';
+import type { RemovePlayerInput } from './dto/remove-player.dto.js';
 
 @WebSocketGateway({
   cors: {
@@ -64,6 +65,20 @@ export class PokerGateway {
   @SubscribeMessage('leaveRoom')
   handleLeaveRoom(@MessageBody() payload: LeaveRoomInput) {
     this.pokerService.leaveRoom(payload.roomId, payload.userId);
+  }
+
+  @SubscribeMessage('player:remove')
+  handleRemovePlayer(@MessageBody() payload: RemovePlayerInput) {
+    const kickedSocketIds = this.pokerService.removePlayerByCreator(
+      payload.roomId,
+      payload.userId,
+      payload.targetUserId,
+    );
+    for (const socketId of kickedSocketIds) {
+      const socket = this.server.sockets.sockets.get(socketId);
+      socket?.leave(payload.roomId);
+      socket?.emit('player:kicked', { roomId: payload.roomId });
+    }
   }
 
   @SubscribeMessage('task:create')
