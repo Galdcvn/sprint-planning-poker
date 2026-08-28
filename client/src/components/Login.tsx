@@ -58,9 +58,8 @@ export function Login({ onLogin }: LoginProps) {
                   type="button"
                   className={`icon-option${ic === icon ? " selected" : ""}`}
                   onClick={() => setIcon(ic)}
-                  aria-label={`Ícone ${ic}`}
                 >
-                  {ic}
+                  <img src={ic} alt="ícone" className="icon-img" />
                 </button>
               ))}
             </div>

@@ -17,7 +17,9 @@ export function Avatar({
       className={`avatar${isMe ? ' me' : ''}${highlight ? ' voted' : ''}`}
       style={style}
     >
-      <div className="avatar-icon">{player.icon}</div>
+      <div className="avatar-icon">
+        <img src={player.icon} alt="" className="avatar-img" />
+      </div>
       <span className="avatar-name">
         {player.name}
         {isMe ? ' (você)' : ''}
