@@ -349,7 +349,7 @@ function PokerTable({
           </div>
         )}
 
-        {activeTask && countdown > 0 && (
+        {activeTask && countdown !== null && countdown > 0 && (
           <div className="table-countdown">{countdown}</div>
         )}
 

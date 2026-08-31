@@ -30,6 +30,16 @@ export class ClickupController {
 
   @Post('title')
   async fetchTitle(@Body() body: FetchTitleBody) {
+    const data = await this.fetchTask(body);
+    return { title: data.name ?? null };
+  }
+
+  @Post('task')
+  async fetchTaskDetails(@Body() body: FetchTitleBody) {
+    return this.fetchTask(body);
+  }
+
+  private async fetchTask(body: FetchTitleBody): Promise<Record<string, unknown>> {
     const taskId = body?.url ? this.extractTaskId(body.url) : null;
     if (!taskId) {
       throw new BadRequestException('Link do ClickUp inválido.');
@@ -51,7 +61,7 @@ export class ClickupController {
       throw new BadRequestException('Não foi possível buscar a tarefa no ClickUp.');
     }
 
-    const data = (await res.json()) as { name?: string };
-    return { title: data.name ?? null };
+    const data = (await res.json()) as Record<string, unknown>;
+    return data;
   }
 }

@@ -328,6 +328,281 @@ input {
   color: var(--text-h);
 }
 
+/* ---------- ClickUp task modal ---------- */
+.clickup-modal {
+  max-width: 560px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.clickup-modal > .field-error {
+  padding: 20px 28px 0;
+  margin: 0;
+}
+
+.clickup-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 0;
+  color: var(--text);
+}
+
+.clickup-empty {
+  color: var(--text);
+  text-align: center;
+  padding: 32px 0;
+}
+
+.clickup-content {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Header ---- */
+.clickup-header {
+  padding: 26px 28px 22px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(
+    180deg,
+    var(--accent-bg),
+    transparent
+  );
+}
+
+.clickup-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.clickup-title {
+  font-size: 22px;
+  line-height: 1.25;
+  color: var(--text-h);
+  margin: 0 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.clickup-list {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.clickup-list::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.clickup-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  color: #1a1a1a;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+/* ---- Sections ---- */
+.clickup-section {
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.clickup-section-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+
+.clickup-desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-h);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.clickup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.clickup-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.clickup-cell-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.clickup-cell-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.clickup-due {
+  color: #e5484d;
+}
+
+.clickup-creator {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.clickup-creator .clickup-user {
+  background: var(--bg);
+  border-color: var(--accent-border);
+  font-size: 15px;
+}
+
+.clickup-creator .clickup-user-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 14px;
+}
+
+.clickup-creator .clickup-user-name {
+  font-size: 15px;
+}
+
+.clickup-sub-title {
+  margin: 18px 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* ---- Users ---- */
+.clickup-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.clickup-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 12px 4px 4px;
+}
+
+.clickup-user-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.clickup-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* ---- Tags & chips ---- */
+.clickup-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.clickup-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.clickup-chip-plain {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.clickup-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ---- Open button ---- */
+.clickup-open-wrap {
+  padding: 22px 28px 28px;
+  display: flex;
+  justify-content: center;
+}
+
+.clickup-open {
+  padding: 9px 20px;
+}
+
+.clickup-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.clickup-link:hover {
+  text-decoration: underline;
+}
+
 .kicked-text {
   margin: 0 0 16px;
   color: var(--text-h);
@@ -476,19 +751,24 @@ input {
   padding: 2px 8px;
 }
 
-.task-card-pen {
+.task-card-pen,
+.task-card-icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 26px;
   height: 26px;
+  border: none;
   border-radius: 6px;
+  cursor: pointer;
   color: var(--text);
   text-decoration: none;
+  background: transparent;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
-.task-card-pen:hover {
+.task-card-pen:hover,
+.task-card-icon-btn:hover {
   background: var(--accent-bg);
   color: var(--accent);
 }

@@ -1,6 +1,10 @@
+import { useState } from "react";
 import type { Socket } from "socket.io-client";
-import { SquarePen, Trash2 } from "lucide-react";
-import type { Task } from "../lib/types";
+import { Eye, SquarePen, Trash2 } from "lucide-react";
+import type { ClickUpTaskDetails, Task } from "../lib/types";
+import { ClickUpTaskModal } from "./ClickUpTaskModal";
+
+const BASE_URL = import.meta.env.VITE_API_URL ?? "/";
 
 interface TaskListProps {
   socket: Socket;
@@ -17,8 +21,45 @@ export function TaskList({
   activeTaskId,
   revealingId,
 }: TaskListProps) {
+  const [detail, setDetail] = useState<{
+    link: string;
+    data: ClickUpTaskDetails | null;
+    loading: boolean;
+    error: string;
+  } | null>(null);
+
   const activate = (taskId: string) =>
     socket.emit("task:activate", { roomId, taskId });
+
+  async function openDetails(link: string) {
+    setDetail({ link, data: null, loading: true, error: "" });
+    try {
+      const res = await fetch(`${BASE_URL}/clickup/task`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: link }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as ClickUpTaskDetails;
+        setDetail({ link, data, loading: false, error: "" });
+      } else {
+        setDetail({
+          link,
+          data: null,
+          loading: false,
+          error: "Não foi possível buscar os dados no ClickUp.",
+        });
+      }
+    } catch {
+      setDetail({
+        link,
+        data: null,
+        loading: false,
+        error: "Não foi possível buscar os dados no ClickUp.",
+      });
+    }
+  }
+
   if (tasks.length === 0) {
     return (
       <div className="task-list empty">
@@ -56,6 +97,19 @@ export function TaskList({
               <span className="task-card-icons">
                 {task.result !== null && task.id !== revealingId && (
                   <span className="task-card-points">{task.result} pts</span>
+                )}
+                {task.link && (
+                  <button
+                    className="task-card-icon-btn"
+                    aria-label="Ver detalhes"
+                    title="Ver detalhes no ClickUp"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDetails(task.link!);
+                    }}
+                  >
+                    <Eye size={16} />
+                  </button>
                 )}
                 {task.link && (
                   <a
@@ -100,6 +154,15 @@ export function TaskList({
           </div>
         );
       })}
+
+      {detail && (
+        <ClickUpTaskModal
+          data={detail.data}
+          loading={detail.loading}
+          error={detail.error}
+          onClose={() => setDetail(null)}
+        />
+      )}
     </div>
   );
 }
