@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "dev": "concurrently -n client,server -c cyan,magenta \"yarn workspace client dev\" \"yarn workspace server dev\"",
+    "start": "yarn workspace client build && yarn workspace server build",
     "build": "yarn workspace client build && yarn workspace server build",
     "dev:client": "yarn workspace client dev",
     "dev:server": "yarn workspace server dev",

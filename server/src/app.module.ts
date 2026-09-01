@@ -9,6 +9,7 @@ import { ClickupModule } from './clickup/clickup.module.js';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['../.env', '.env'],
     }),
     PokerModule,
     ClickupModule,
