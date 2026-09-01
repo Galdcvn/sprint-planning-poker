@@ -14,7 +14,8 @@
     "dev:server": "yarn workspace server dev",
     "build:client": "yarn workspace client build",
     "build:server": "yarn workspace server build",
-    "start:server": "yarn workspace server start:prod"
+    "start:server": "yarn workspace server start:prod",
+    "start:prod": "concurrently -n client,server -c cyan,magenta \"yarn workspace client preview\" \"yarn workspace server start:prod\""
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
